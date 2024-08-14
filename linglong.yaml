@@ -1,0 +1,50 @@
+version: "1"
+
+package:
+  id: io.github.PoryDrive-2.0
+  name: PoryDrive-2.0
+  version: 2.0.0.0
+  kind: app
+  description: |
+    Just a car game, with Porygon!
+
+base: org.deepin.foundation/23.0.0
+runtime: org.deepin.Runtime/23.0.1
+
+command:
+  - /opt/apps/io.github.PoryDrive-2.0/files/bin/porydrive
+
+sources:
+  - kind: git
+    url: https://github.com/mrbid/PoryDrive-2.0.git
+    version: master
+    commit: 0bd5af234334b2fe6fb9179de3eaf5fe47ed72da
+
+  - kind: git
+    url: https://github.com/upx/upx.git
+    version: master
+    commit: 1427b8137a6a3fcbf541e529d9de349230f4ebae
+
+  - kind: file
+    url: https://community-packages.deepin.com/beige/pool/main/g/glfw3/libglfw3_3.3.2-2_amd64.deb
+    digest: 07135a46434466b88f85ad6dbb34bc8dc4f49c822f0d07a58a665ed11179486b
+
+  - kind: file
+    url: https://community-packages.deepin.com/beige/pool/main/g/glfw3/libglfw3-dev_3.3.2-2_amd64.deb
+    digest: b32c7de448ab1946595d9e0472a097af40be3dad1fc6f3a7e47a378284676859
+
+build: |
+  echo "" > $PREFIX/packages.list
+  bash ./install_dep linglong/sources "$PREFIX"
+  cd /project/linglong/sources/upx.git/
+  cmake -Bbuild \
+        -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+        -DCMAKE_INSTALL_LIBDIR=${PREFIX}/lib/${TRIPLET}
+  cmake --build build
+  cmake --build build --target install
+  
+  
+  cd /project/linglong/sources/PoryDrive-2.0.git/
+  git apply /project/patches/0001-fix-commands.patch
+  make 
+  make install PREFIX=${PREFIX}
